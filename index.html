@@ -866,48 +866,19 @@ function saveToDatabase(recordData) {
         }
 
      function gotoStep4() {
-    if (!hasDrawn || !selectedFortune) return;
-    document.getElementById('screen-step3').classList.add('hidden');
-    document.getElementById('screen-step4').classList.remove('hidden');
+            if (!hasDrawn || !selectedFortune) return;
+            document.getElementById('screen-step3').classList.add('hidden');
+            document.getElementById('screen-step4').classList.remove('hidden');
 
-    const titleMatch = selectedFortune.title.match(/第(.*?)籤/);
-    const signNum = titleMatch ? `第${titleMatch[1]}籤` : selectedFortune.title;
-    document.getElementById('card-sign-number').innerText = signNum;
+            const titleMatch = selectedFortune.title.match(/第(.*?)籤/);
+            const signNum = titleMatch ? `第${titleMatch[1]}籤` : selectedFortune.title;
+            document.getElementById('card-sign-number').innerText = signNum;
 
-    const cleanedLines = selectedFortune.poem
-        .replace(/[，。]/g, '')
-        .split('<br>')
-        .map(line => `<div class="mx-2 md:mx-4">${line}</div>`)
-        .join('');
-        
-    document.getElementById('card-poem-container').innerHTML = cleanedLines;
-
-    let formattedLuck = selectedFortune.luck;
-    if (formattedLuck === '大吉') formattedLuck = '上上大吉';
-    else if (formattedLuck === '上吉') formattedLuck = '上吉運';
-    else if (formattedLuck === '中吉') formattedLuck = '中吉安';
-    else if (formattedLuck === '中平') formattedLuck = '中平籤';
-    else if (formattedLuck === '下平') formattedLuck = '中下籤';
-    else if (formattedLuck === '下下') formattedLuck = '下下籤';
-    document.getElementById('card-luck-level').innerText = formattedLuck;
-
-    document.getElementById('fortune-meaning').innerText = selectedFortune.meaning;
-    document.getElementById('fortune-advice').innerText = selectedFortune.love_advice;
-
-    // 👇 就是加在這裡！在解籤內容都顯示出來後，把資料拋轉到 Google Sheets
-    saveToDatabase({
-        name: userData.name,
-        gender: userData.gender,
-        question: userData.question,
-        signName: signNum, // 從上面取得的籤號
-        luck: formattedLuck // 從上面取得的吉凶
-    });
-    // 👆 新增結束
-
-    updateStepper(3, 4);
-    playSound('bell');
-}
-            
+            const cleanedLines = selectedFortune.poem
+                .replace(/[，。]/g, '')
+                .split('<br>')
+                .map(line => `<div class="mx-2 md:mx-4">${line}</div>`)
+                .join('');
                 
             document.getElementById('card-poem-container').innerHTML = cleanedLines;
                 
