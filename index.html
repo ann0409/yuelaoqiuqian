@@ -485,7 +485,7 @@
 const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwqdLuVH3Hggfd7lS9sRpuV85fDo8uvQcIECoKvpKcsvKjxXd8DI2LeA_b-B0mmn-Ez/exec"; 
 
 function saveToDatabase(recordData) {
-    // 1. 原本存入本機 localStorage 的邏輯 (保留以便前端顯示)
+    // 1. 原本存入本機 localStorage 的邏輯
     let db = JSON.parse(localStorage.getItem('divination_db')) || [];
     const newRecord = {
         id: Date.now(),
@@ -498,7 +498,7 @@ function saveToDatabase(recordData) {
     // 2. 雲端同步：透過 Fetch API 將資料 POST 到 Google Sheets
     fetch(GOOGLE_SHEETS_API_URL, {
         method: 'POST',
-        // 因為跨網域限制，這裡有時會用 text/plain 來避開 CORS 預檢，Apps Script 那邊一樣能收到
+        mode: 'no-cors', // 👈 關鍵一：強制跳過 CORS 預檢，一定要加這行！
         headers: {
             'Content-Type': 'text/plain;charset=utf-8', 
         },
@@ -512,14 +512,15 @@ function saveToDatabase(recordData) {
             source: "系統線上自動拋轉"
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log("已成功同步至 Google Sheets!", data);
+    .then(response => {
+        // 👈 關鍵二：no-cors 模式下無法讀取 json，直接 console.log 成功即可
+        console.log("資料已順利送出至 Google Sheets！（無回傳值模式）");
     })
     .catch(error => {
-        console.error("同步至 Google Sheets 失敗:", error);
+        console.error("同步至 Google Sheets 發生網路錯誤:", error);
     });
 }
+
 
         
         // --- 姻緣專屬籤詩 ---
@@ -864,20 +865,49 @@ function saveToDatabase(recordData) {
             }, 2000); 
         }
 
-        function gotoStep4() {
-            if (!hasDrawn || !selectedFortune) return;
-            document.getElementById('screen-step3').classList.add('hidden');
-            document.getElementById('screen-step4').classList.remove('hidden');
+     function gotoStep4() {
+    if (!hasDrawn || !selectedFortune) return;
+    document.getElementById('screen-step3').classList.add('hidden');
+    document.getElementById('screen-step4').classList.remove('hidden');
 
-            const titleMatch = selectedFortune.title.match(/第(.*?)籤/);
-            const signNum = titleMatch ? `第${titleMatch[1]}籤` : selectedFortune.title;
-            document.getElementById('card-sign-number').innerText = signNum;
+    const titleMatch = selectedFortune.title.match(/第(.*?)籤/);
+    const signNum = titleMatch ? `第${titleMatch[1]}籤` : selectedFortune.title;
+    document.getElementById('card-sign-number').innerText = signNum;
 
-            const cleanedLines = selectedFortune.poem
-                .replace(/[，。]/g, '')
-                .split('<br>')
-                .map(line => `<div class="mx-2 md:mx-4">${line}</div>`)
-                .join('');
+    const cleanedLines = selectedFortune.poem
+        .replace(/[，。]/g, '')
+        .split('<br>')
+        .map(line => `<div class="mx-2 md:mx-4">${line}</div>`)
+        .join('');
+        
+    document.getElementById('card-poem-container').innerHTML = cleanedLines;
+
+    let formattedLuck = selectedFortune.luck;
+    if (formattedLuck === '大吉') formattedLuck = '上上大吉';
+    else if (formattedLuck === '上吉') formattedLuck = '上吉運';
+    else if (formattedLuck === '中吉') formattedLuck = '中吉安';
+    else if (formattedLuck === '中平') formattedLuck = '中平籤';
+    else if (formattedLuck === '下平') formattedLuck = '中下籤';
+    else if (formattedLuck === '下下') formattedLuck = '下下籤';
+    document.getElementById('card-luck-level').innerText = formattedLuck;
+
+    document.getElementById('fortune-meaning').innerText = selectedFortune.meaning;
+    document.getElementById('fortune-advice').innerText = selectedFortune.love_advice;
+
+    // 👇 就是加在這裡！在解籤內容都顯示出來後，把資料拋轉到 Google Sheets
+    saveToDatabase({
+        name: userData.name,
+        gender: userData.gender,
+        question: userData.question,
+        signName: signNum, // 從上面取得的籤號
+        luck: formattedLuck // 從上面取得的吉凶
+    });
+    // 👆 新增結束
+
+    updateStepper(3, 4);
+    playSound('bell');
+}
+            
                 
             document.getElementById('card-poem-container').innerHTML = cleanedLines;
                 
