@@ -480,6 +480,48 @@
     </svg>
 
     <script>
+
+// 您剛才獲得的 Google Apps Script 網址
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwqdLuVH3Hggfd7lS9sRpuV85fDo8uvQcIECoKvpKcsvKjxXd8DI2LeA_b-B0mmn-Ez/exec"; 
+
+function saveToDatabase(recordData) {
+    // 1. 原本存入本機 localStorage 的邏輯 (保留以便前端顯示)
+    let db = JSON.parse(localStorage.getItem('divination_db')) || [];
+    const newRecord = {
+        id: Date.now(),
+        time: new Date().toLocaleString('zh-TW', { hour12: false }),
+        ...recordData
+    };
+    db.unshift(newRecord);
+    localStorage.setItem('divination_db', JSON.stringify(db));
+
+    // 2. 雲端同步：透過 Fetch API 將資料 POST 到 Google Sheets
+    fetch(GOOGLE_SHEETS_API_URL, {
+        method: 'POST',
+        // 因為跨網域限制，這裡有時會用 text/plain 來避開 CORS 預檢，Apps Script 那邊一樣能收到
+        headers: {
+            'Content-Type': 'text/plain;charset=utf-8', 
+        },
+        body: JSON.stringify({
+            time: newRecord.time,
+            name: recordData.name,
+            gender: recordData.gender,
+            question: recordData.question,
+            signName: recordData.signName,
+            luck: recordData.luck,
+            source: "系統線上自動拋轉"
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("已成功同步至 Google Sheets!", data);
+    })
+    .catch(error => {
+        console.error("同步至 Google Sheets 失敗:", error);
+    });
+}
+
+        
         // --- 姻緣專屬籤詩 ---
         const fortunesLove = [
             { title: "第一籤【大吉】", luck: "大吉", poem: "關關雎鳩，在河之洲。<br>窈窕淑女，君子好逑。", meaning: "命中注定，佳偶天成。此籤描繪男女雙方心意契合，乃是極為和諧、幸福美滿之兆。若問姻緣，近期將有良緣顯現，宜主動把握。", love_advice: "💡 單身者：最近桃花運極佳，會有符合你心儀條件的優秀對象出現。\n💡 戀愛中：雙方感情契合，已到談婚論嫁的最佳時機。" },
