@@ -894,6 +894,16 @@ function saveToDatabase(recordData) {
             document.getElementById('fortune-meaning').innerText = selectedFortune.meaning;
             document.getElementById('fortune-advice').innerText = selectedFortune.love_advice;
 
+         // 儲存到 Google Sheet
+saveToDatabase({
+    name: userData.name,
+    gender: userData.gender,
+    birth: userData.birth,
+    question: userData.question,
+    signName: selectedFortune.title,
+    luck: selectedFortune.luck
+});
+
             updateStepper(3, 4);
             playSound('bell');
         }
