@@ -502,16 +502,17 @@ function saveToDatabase(recordData) {
         headers: {
             'Content-Type': 'text/plain;charset=utf-8', 
         },
-        body: JSON.stringify({
-            time: newRecord.time,
-            name: recordData.name,
-            gender: recordData.gender,
-            birth: recordData.birth,
-            question: recordData.question,
-            signName: recordData.signName,
-            luck: recordData.luck,
-            source: "系統線上自動拋轉"
-        })
+       body: JSON.stringify({
+    time: newRecord.time,
+    name: recordData.name,
+    gender: recordData.gender,
+    birth: recordData.birth,
+    question: recordData.question,
+    signName: recordData.signName,
+    luck: recordData.luck,
+    mode: currentMode,
+    source:"網站"
+})
     })
     .then(response => {
         // 👈 關鍵二：no-cors 模式下無法讀取 json，直接 console.log 成功即可
